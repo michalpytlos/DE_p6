@@ -17,7 +17,7 @@ air_quality_table_create = """
     CREATE TABLE public.air_quality (
         measurement_id bigint NOT NULL,
         parameter varchar(4) NOT NULL,
-        value numeric(5, 2) NOT NULL,
+        value real NOT NULL,
         ts timestamp NOT NULL,
         zone_id varchar(32) NOT NULL,
         city_id bigint,
@@ -51,7 +51,7 @@ location_table_create = """
     CREATE TABLE public.locations (
         location_id bigint NOT NULL,
         name varchar(256),
-        zone_id char(32),
+        zone_id varchar(32),
         PRIMARY KEY(location_id)
     )"""
 

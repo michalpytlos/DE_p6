@@ -59,9 +59,10 @@ class ETAirQualityOperator(BaseOperator):
         """Transform data"""
 
         def hash_string(string):
-            """Hash string using md5"""
+            """Hash string using md5 and convert to bigint"""
             res = hashlib.md5(string.encode(encoding='UTF-8'))
-            return res.hexdigest()
+            bigint_max = 2**64//2
+            return int(res.hexdigest(), 16) % bigint_max
 
         # Convert ppm values
         molecular_weight = {
@@ -79,6 +80,7 @@ class ETAirQualityOperator(BaseOperator):
 
         conversion_factor = df['parameter'].combine(df['unit'], convert_ppm)
         df['value'] = conversion_factor * df['value']
+        df['value'] = df['value'].round(1)
         df.drop(columns=['unit'], inplace=True)
         self.log.info('ppm conversion completed.')
 
@@ -107,7 +109,7 @@ class ETAirQualityOperator(BaseOperator):
             lambda x: pd.Timestamp(x['local']).floor(freq='H'),
             na_action='ignore')
         df['timestamp'] = df['ts'].map(
-            lambda x: x.strftime('%Y-%m-%dT%H:%M:%S%z'))
+            lambda x: x.strftime('%Y-%m-%d %H:%M:%S'))
         df.drop(columns=['date'], inplace=True)
         self.log.info('Transformation of timestamp data completed.')
 
@@ -119,12 +121,14 @@ class ETAirQualityOperator(BaseOperator):
         df = df.groupby(groupby_cols, as_index=False).agg(agg_dict)
         self.log.info('Data aggregated to hourly buckets.')
 
-        # Create indexes for location and city tables
+        # Create indexes for location, source and city tables
         df['city_id'] = df['city'].combine(
             df['zone_id'], lambda x1, x2: hash_string(x1 + x2))
         df['location_id'] = df['location'].combine(
             df['zone_id'], lambda x1, x2: hash_string(x1 + x2))
-        self.log.info('Indexes for location and city tables created.')
+        df['source_id'] = df['sourceName'].combine(
+            df['sourceType'], lambda x1, x2: hash_string(x1 + x2))
+        self.log.info('Indexes for location, source and city tables created.')
 
         # Unpack attribution data
         df['attr_id'] = df['attribution'].map(
@@ -143,7 +147,7 @@ class ETAirQualityOperator(BaseOperator):
         self.log.info('Transformation of attribution data completed.')
 
         # Create index for air quality table
-        df['id'] = df['timestamp'] + df['parameter'] + df['location_id']
+        df['id'] = df['timestamp'] + df['parameter'] + df['location_id'].apply(str)
         df['id'] = df['id'].map(lambda x: hash_string(x))
         df.set_index('id', inplace=True)
         self.log.info('Index for air quality table created.')
@@ -182,16 +186,16 @@ class ETAirQualityOperator(BaseOperator):
             'location': make_sub_df(df, 'location_id', ['location', 'zone_id']),
 
             'zone': make_sub_df(df, 'zone_id', ['latitude', 'longitude']),
-            'source': make_sub_df(df, 'sourceName', ['sourceType']),
+            'source': make_sub_df(df, 'source_id', ['sourceName', 'sourceType']),
             'time': make_time_df(df),
             'air_quality': df[['parameter', 'value', 'timestamp', 'zone_id',
-                               'city_id', 'attr_id', 'sourceName',
+                               'city_id', 'attr_id', 'source_id',
                                'location_id']]
         }
 
         s3_path_common = f's3a://{self.s3_out_bucket}/{self.s3_out_prefix}'
 
         for key, val in dfs_dict.items():
-            s3_path = f'{s3_path_common}/{date}/{key}.parquet'
-            val.to_parquet(s3_path, compression='gzip')
+            s3_path = f'{s3_path_common}/{date}/{key}.csv'
+            val.to_csv(s3_path)
             self.log.info(f'{key} data saved to s3 ({val.shape[0]})')
