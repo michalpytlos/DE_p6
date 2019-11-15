@@ -85,15 +85,15 @@ time_table_create = """
 
 weather_station_table_create = """
     CREATE TABLE public.weather_stations (
-        station_id char(11) NOT NULL,
+        station_id varchar(16) NOT NULL,
         latitude numeric(3, 1),
         longitude numeric(4, 1),
         elevation numeric(6, 1),
-        state char(2),
+        state varchar(4),
         name varchar(32),
-        gsn varchar(3),
-        hcn_crn varchar(3),
-        wmo_id smallint,
+        gsn varchar(4),
+        hcn_crn varchar(4),
+        wmo_id int,
         PRIMARY KEY (station_id)
     )"""
 
