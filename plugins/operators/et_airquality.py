@@ -179,14 +179,14 @@ class ETAirQualityOperator(BaseOperator):
             return time_df.drop(columns=['ts'])
 
         dfs_dict = {
-            'attribution': make_sub_df(df, 'attr_id',
+            'attributions': make_sub_df(df, 'attr_id',
                                        ['attr_name1', 'attr_url1',
                                         'attr_name2', 'attr_url2']),
-            'city': make_sub_df(df, 'city_id', ['city', 'country', 'zone_id']),
-            'location': make_sub_df(df, 'location_id', ['location', 'zone_id']),
+            'cities': make_sub_df(df, 'city_id', ['city', 'country', 'zone_id']),
+            'locations': make_sub_df(df, 'location_id', ['location', 'zone_id']),
 
-            'zone': make_sub_df(df, 'zone_id', ['latitude', 'longitude']),
-            'source': make_sub_df(df, 'source_id', ['sourceName', 'sourceType']),
+            'zones': make_sub_df(df, 'zone_id', ['latitude', 'longitude']),
+            'sources': make_sub_df(df, 'source_id', ['sourceName', 'sourceType']),
             'time': make_time_df(df),
             'air_quality': df[['parameter', 'value', 'timestamp', 'zone_id',
                                'city_id', 'attr_id', 'source_id',
