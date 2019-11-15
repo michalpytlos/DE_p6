@@ -34,33 +34,46 @@ class CopyCsvRedshiftOperator(BaseOperator):
         REGION '{}'
         CSV
         IGNOREHEADER {}
+        {}
     """
 
     @apply_defaults
     def __init__(self, redshift_conn_id, table, s3_bucket, s3_prefix,
-                 arn, region='us-east-1', ignore_header=0, *args, **kwargs):
+                 data_type, arn, region='us-east-1', ignore_header=0,
+                 compression="", *args, **kwargs):
         super(CopyCsvRedshiftOperator, self).__init__(*args, **kwargs)
 
         self.redshift_conn_id = redshift_conn_id
         self.table = table
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix
+        self.data_type = data_type
         self.arn = arn
         self.region = region
         self.ignore_header = ignore_header
+        self.compression = compression
 
     def execute(self, context):
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
         date = context['ds']
-        s3_path = f's3://{self.s3_bucket}/{self.s3_prefix}/{date}/{self.table}.csv'
+
+        if self.data_type == 'air_quality':
+            s3_path = f's3://{self.s3_bucket}/{self.s3_prefix}/{date}/{self.table}.csv'
+        elif self.data_type == 'weather':
+            s3_path = f's3://{self.s3_bucket}/{self.s3_prefix}/{date[:4]}.csv.gz'
+        else:
+            self.log.error(f'Unknown CSV data type ({self.data_type})')
+            self.log.info(f'Known CSV data types: air_quality, weather')
+            raise ValueError(f'Unknown CSV data type ({self.data_type})')
 
         query = CopyCsvRedshiftOperator.copy_query.format(
             self.table,
             s3_path,
             self.arn,
             self.region,
-            self.ignore_header
+            self.ignore_header,
+            self.compression
         )
 
         self.log.info(f'Copying data from S3 to Redshift ({self.table})')

@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.dummy_operator import DummyOperator
-
 from airflow.operators import DataQualityOperator
 from airflow.operators.udacity_plugin import ETAirQualityOperator, CopyCsvRedshiftOperator
 # from airflow.helpers.udacity_plugin import SqlQueries
@@ -44,6 +43,7 @@ load_air_quality_table = CopyCsvRedshiftOperator(
     table='air_quality',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -55,6 +55,7 @@ load_attribution_table = CopyCsvRedshiftOperator(
     table='air_quality',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -66,6 +67,7 @@ load_city_table = CopyCsvRedshiftOperator(
     table='cities',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -77,6 +79,7 @@ load_location_table = CopyCsvRedshiftOperator(
     table='locations',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -88,6 +91,7 @@ load_source_table = CopyCsvRedshiftOperator(
     table='sources',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -99,6 +103,7 @@ load_time_table = CopyCsvRedshiftOperator(
     table='time',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
@@ -110,6 +115,7 @@ load_zone_table = CopyCsvRedshiftOperator(
     table='zones',
     s3_bucket=Variable.get('s3_out_aq_bucket'),
     s3_prefix=Variable.get('s3_out_aq_prefix'),
+    data_type='air_quality',
     arn=Variable.get('iam_role_arn'),
     ignore_header=1
 )
