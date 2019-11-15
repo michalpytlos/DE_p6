@@ -17,7 +17,7 @@ default_args = {
 
 
 # DAG
-dag = DAG('weather_dag1',
+dag = DAG('weather_dag3',
           default_args=default_args,
           description='ETL for weather data',
           schedule_interval='0 0 1 1 *'
@@ -35,7 +35,8 @@ load_stations_table = CopyFixedWidthRedshiftOperator(
     s3_key=Variable.get('s3_weather_stations_key'),
     arn=Variable.get('iam_role_arn'),
     fixedwidth_spec=Variable.get('s3_weather_stations_spec'),
-    maxerror=Variable.get('s3_weather_stations_maxerror')
+    maxerror=Variable.get('s3_weather_stations_maxerror'),
+    load_delete=False
 )
 
 

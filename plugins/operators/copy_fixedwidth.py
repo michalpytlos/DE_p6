@@ -16,6 +16,8 @@ class CopyFixedWidthRedshiftOperator(BaseOperator):
         maxerror (int): max allowed number of errors during copy
         region (str, optional): AWS region in which the S3 bucket is located.
             Defaults to 'us-east-1'
+        delete_load (bool): delete-load mode flag. Defaults to False
+
     Attributes:
         redshift_conn_id (str): redshift connection id
         table (str): name of the table the data is copied to
@@ -26,6 +28,7 @@ class CopyFixedWidthRedshiftOperator(BaseOperator):
             delimited by commas.
         maxerror (int): max allowed number of errors during copy
         region (str): AWS region in which the S3 bucket is located
+        delete_load (bool): delete-load mode flag
     """
     ui_color = '#358140'
 
@@ -40,8 +43,8 @@ class CopyFixedWidthRedshiftOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, redshift_conn_id, table, s3_bucket, s3_key,
-                 arn, fixedwidth_spec, maxerror=1, region='us-east-1', *args,
-                 **kwargs):
+                 arn, fixedwidth_spec, maxerror=1, region='us-east-1',
+                 delete_load=False, *args, **kwargs):
         super(CopyFixedWidthRedshiftOperator, self).__init__(*args, **kwargs)
 
         self.redshift_conn_id = redshift_conn_id
@@ -52,9 +55,15 @@ class CopyFixedWidthRedshiftOperator(BaseOperator):
         self.fixedwidth_spec = fixedwidth_spec
         self.maxerror = maxerror
         self.region = region
+        self.delete_load = delete_load
 
     def execute(self, context):
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+
+        if self.delete_load:
+            self.log.info(f'Deleting data from {self.table}')
+            redshift.run(f'DELETE FROM {self.table}')
+            self.log.info(f'Delete completed ({self.table})')
 
         s3_path = f's3://{self.s3_bucket}/{self.s3_key}'
 
