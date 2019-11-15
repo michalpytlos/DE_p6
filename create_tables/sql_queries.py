@@ -7,6 +7,7 @@ location_table_drop = "DROP TABLE IF EXISTS locations"
 source_table_drop = "DROP TABLE IF EXISTS sources"
 zone_table_drop = "DROP TABLE IF EXISTS zones"
 time_table_drop = "DROP TABLE IF EXISTS time"
+staging_weather_station_table_drop = "DROP TABLE IF EXISTS staging_weather_stations"
 weather_station_table_drop = "DROP TABLE IF EXISTS weather_stations"
 staging_weather_table_drop = "DROP TABLE IF EXISTS staging_weather"
 weather_table_drop = "DROP TABLE IF EXISTS weather"
@@ -83,8 +84,8 @@ time_table_create = """
         PRIMARY KEY (ts)
     )"""
 
-weather_station_table_create = """
-    CREATE TABLE public.weather_stations (
+staging_weather_station_table_create = """
+    CREATE TABLE public.staging_weather_stations (
         station_id varchar(16) NOT NULL,
         latitude numeric(3, 1),
         longitude numeric(4, 1),
@@ -94,6 +95,21 @@ weather_station_table_create = """
         gsn varchar(4),
         hcn_crn varchar(4),
         wmo_id int,
+        PRIMARY KEY (station_id)
+    )"""
+
+weather_station_table_create = """
+    CREATE TABLE public.weather_stations (
+        station_id varchar(16) NOT NULL,
+        latitude numeric(3, 1) NOT NULL,
+        longitude numeric(4, 1) NOT NULL,
+        elevation numeric(6, 1),
+        state varchar(4),
+        name varchar(32),
+        gsn varchar(4),
+        hcn_crn varchar(4),
+        wmo_id int,
+        zone_id varchar(32) NOT NULL,
         PRIMARY KEY (station_id)
     )"""
 
@@ -133,6 +149,7 @@ create_table_queries = [
     zone_table_create,
     source_table_create,
     time_table_create,
+    staging_weather_station_table_create,
     weather_station_table_create,
     staging_weather_table_create,
     weather_table_create
@@ -146,6 +163,7 @@ drop_table_queries = [
     zone_table_drop,
     source_table_drop,
     time_table_drop,
+    staging_weather_station_table_drop,
     weather_station_table_drop,
     staging_weather_table_drop,
     weather_table_drop
