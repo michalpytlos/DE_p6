@@ -49,6 +49,15 @@ load_weather_stations_table = LoadDimensionOperator(
     delete_load=True
 )
 
+load_zone_table = LoadDimensionOperator(
+    task_id='Load_zone_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='zones',
+    insert_query=SqlQueries.zone_table_insert,
+    delete_load=False
+)
+
 stage_weather_to_redshift = CopyCsvRedshiftOperator(
     task_id='Stage_weather',
     dag=dag,
@@ -71,3 +80,4 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
 # Set task dependencies
 stage_weather_stations_to_redshift >> load_weather_stations_table
+load_weather_stations_table >> load_zone_table
