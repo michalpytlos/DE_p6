@@ -7,7 +7,30 @@ import hashlib
 
 
 class ETAirQualityOperator(BaseOperator):
-    """Class used to extract and transform air quality data"""
+    """Class used to extract and transform air quality data
+
+    Args:
+        aws_key_id (str): Access key ID of user with
+            AmazonS3FullAccess permission
+        aws_secret_key (str): Secret access key of user with
+            AmazonS3FullAccess permission
+        s3_in_bucket (str): name of S3 bucket with input data
+        s3_in_prefix (str): s3 prefix common to all input data files
+        s3_out_bucket (str): name of S3 bucket where the output is to
+            be saved
+        s3_out_prefix (str): s3 prefix common to all output data files
+
+    Attributes:
+        aws_key_id (str): Access key ID of user with
+            AmazonS3FullAccess permission
+        aws_secret_key (str): Secret access key of user with
+            AmazonS3FullAccess permission
+        s3_in_bucket (str): name of S3 bucket with input data
+        s3_in_prefix (str): s3 prefix common to all input data files
+        s3_out_bucket (str): name of S3 bucket where the output is to
+            be saved
+        s3_out_prefix (str): s3 prefix common to all output data files
+    """
     ui_color = '#89DA59'
 
     @apply_defaults
@@ -73,6 +96,7 @@ class ETAirQualityOperator(BaseOperator):
         }
 
         def convert_ppm(param, unit):
+            """Convert value from ppm to µg/m3"""
             if unit == 'ppm':
                 return 1000 * 0.0409 * molecular_weight.get(param, -1)
             else:

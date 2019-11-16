@@ -1,4 +1,6 @@
 class SqlQueries:
+    """Container for sql statements used by DAG tasks"""
+
     weather_stations_table_insert = ("""
         INSERT INTO weather_stations
             SELECT *, CONCAT(CONCAT('lat',latitude), CONCAT('long',longitude))
