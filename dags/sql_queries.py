@@ -30,3 +30,18 @@ class SqlQueries:
                     ON sw.station_id = ws.station_id
     """)
 
+    time_table_insert = ("""
+        INSERT INTO time
+            SELECT
+                DISTINCT w.ts,
+                EXTRACT(h from w.ts),
+                EXTRACT(d from w.ts),
+                EXTRACT(w from w.ts),
+                EXTRACT(mon from w.ts),
+                EXTRACT(y from w.ts),
+                EXTRACT(weekday from w.ts)
+                FROM weather w
+                LEFT OUTER JOIN time
+                    ON w.ts = time.ts
+                WHERE time.ts IS NULL
+    """)

@@ -80,6 +80,15 @@ load_weather_table = LoadFactOperator(
     insert_query=SqlQueries.weather_table_insert
 )
 
+load_time_table = LoadDimensionOperator(
+    task_id='Load_time_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='time',
+    insert_query=SqlQueries.time_table_insert,
+    delete_load=False
+)
+
 run_quality_checks = DataQualityOperator(
     task_id='Run_data_quality_checks',
     dag=dag
@@ -91,3 +100,4 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 stage_weather_stations_to_redshift >> load_weather_stations_table
 load_weather_stations_table >> load_zone_table
 stage_weather_to_redshift >> load_weather_table
+load_weather_table >> load_time_table
