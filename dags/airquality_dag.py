@@ -11,16 +11,19 @@ from sql_queries import SqlQueries
 # Default args for each task of the DAG
 default_args = {
     'owner': 'udacity',
-    'start_date': datetime(2013, 3, 12),
-    'end_date': datetime(2014, 3, 12)
+    'start_date': datetime(2017, 1, 1),
+    'end_date': datetime(2017, 1, 3),
+    'depends_on_past': True,
+    'retries': 3,
+    'retry_delay': timedelta(minutes=5)
 }
 
 
 # DAG
-dag = DAG('airquality1_dag',
+dag = DAG('airquality_dag',
           default_args=default_args,
           description='ETL for air quality data',
-          schedule_interval='0 0 1 1 *'
+          schedule_interval='0 0 * * *'
           )
 
 # Tasks
