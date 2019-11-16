@@ -4,6 +4,7 @@ from airflow.models import Variable
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.udacity_plugin import (DataQualityOperator,
                                               LoadDimensionOperator,
+                                              LoadFactOperator,
                                               CopyCsvRedshiftOperator,
                                               CopyFixedWidthRedshiftOperator)
 from sql_queries import SqlQueries
@@ -71,6 +72,14 @@ stage_weather_to_redshift = CopyCsvRedshiftOperator(
     compression='gzip'
 )
 
+load_weather_table = LoadFactOperator(
+    task_id='Load_weather_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='weather',
+    insert_query=SqlQueries.weather_table_insert
+)
+
 run_quality_checks = DataQualityOperator(
     task_id='Run_data_quality_checks',
     dag=dag
@@ -81,3 +90,4 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 # Set task dependencies
 stage_weather_stations_to_redshift >> load_weather_stations_table
 load_weather_stations_table >> load_zone_table
+stage_weather_to_redshift >> load_weather_table
