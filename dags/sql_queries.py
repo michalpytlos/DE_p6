@@ -45,3 +45,18 @@ class SqlQueries:
                     ON w.ts = time.ts
                 WHERE time.ts IS NULL
     """)
+
+    zone_table_quality_check = ("""
+        SELECT COUNT(*)
+            FROM zones
+            WHERE latitude < -90
+                OR latitude > 90
+                OR longitude < -180
+                OR longitude > 180
+    """)
+
+    air_quality_table_quality_check = ("""
+        SELECT COUNT(*)
+            FROM air_quality
+            WHERE parameter NOT IN ('pm10', 'pm25', 'o3', 'so2', 'co', 'no2')
+    """)

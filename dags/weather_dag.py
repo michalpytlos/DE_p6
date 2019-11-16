@@ -89,15 +89,23 @@ load_time_table = LoadDimensionOperator(
     delete_load=False
 )
 
-run_quality_checks = DataQualityOperator(
-    task_id='Run_data_quality_checks',
-    dag=dag
+quality_checks_zone_table = DataQualityOperator(
+    task_id='Quality_checks_zone_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='zone',
+    test_query=SqlQueries.zone_table_quality_check,
+    expected_res=0
 )
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
 # Set task dependencies
+start_operator >> (stage_weather_stations_to_redshift,
+                   stage_weather_to_redshift)
 stage_weather_stations_to_redshift >> load_weather_stations_table
 load_weather_stations_table >> load_zone_table
-stage_weather_to_redshift >> load_weather_table
+(stage_weather_to_redshift, load_weather_stations_table) >> load_weather_table
 load_weather_table >> load_time_table
+(load_zone_table, load_time_table) >> quality_checks_zone_table
+quality_checks_zone_table >> end_operator

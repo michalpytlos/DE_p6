@@ -2,9 +2,10 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators import DataQualityOperator
-from airflow.operators.udacity_plugin import ETAirQualityOperator, CopyCsvRedshiftOperator
-# from airflow.helpers.udacity_plugin import SqlQueries
+from airflow.operators.udacity_plugin import (ETAirQualityOperator,
+                                              CopyCsvRedshiftOperator,
+                                              DataQualityOperator)
+from sql_queries import SqlQueries
 
 
 # Default args for each task of the DAG
@@ -120,10 +121,22 @@ load_zone_table = CopyCsvRedshiftOperator(
     ignore_header=1
 )
 
+quality_checks_zone_table = DataQualityOperator(
+    task_id='Quality_checks_zone_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='zone',
+    test_query=SqlQueries.zone_table_quality_check,
+    expected_res=0
+)
 
-run_quality_checks = DataQualityOperator(
-    task_id='Run_data_quality_checks',
-    dag=dag
+quality_checks_air_quality_table = DataQualityOperator(
+    task_id='Quality_checks_air_quality_table',
+    dag=dag,
+    redshift_conn_id='redshift',
+    table='air_quality',
+    test_query=SqlQueries.air_quality_table_quality_check,
+    expected_res=0
 )
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
@@ -140,5 +153,5 @@ load_zone_table >> (load_city_table, load_location_table)
  load_time_table,
  load_city_table,
  load_location_table) >> load_air_quality_table
-load_air_quality_table >> run_quality_checks
-run_quality_checks >> end_operator
+load_air_quality_table >> (quality_checks_zone_table,
+                           quality_checks_air_quality_table) >> end_operator
